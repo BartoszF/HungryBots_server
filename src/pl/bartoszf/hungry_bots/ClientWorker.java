@@ -1,5 +1,8 @@
 package pl.bartoszf.hungry_bots;
 
+import pl.bartoszf.hungry_bots.States.ClientState;
+import pl.bartoszf.hungry_bots.States.ConnectedState;
+
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -12,6 +15,8 @@ public class ClientWorker implements Runnable {
     private final Logger logger = Logger.getLogger(ClientWorker.class.getName());
     private String workingDir;
     private int id = -1;
+
+    private ClientState state;
     //private ScreenManager manager;
 
     /**
@@ -20,6 +25,7 @@ public class ClientWorker implements Runnable {
     public ClientWorker(final PlayerSocket socket, String homeDir) {
         this.socket = socket;
         this.workingDir = homeDir;
+        this.state = new ConnectedState(socket, this);
         //this.manager = new ScreenManager(socket,this);
     }
 
@@ -36,6 +42,13 @@ public class ClientWorker implements Runnable {
                 // TODO: Handle messages
                 //
                 //
+                /*String command = socket.getReader().readLine();
+                if(command.equals("REGISTER"))
+                {
+                    socket.setUserName("" + socket.getId());
+                    socket.gameManager.register(socket);
+                }*/
+                state.handle();
                 if (socket.getSocket().isClosed()) cancel = true;
             }
         } catch (Exception e) {
@@ -49,6 +62,10 @@ public class ClientWorker implements Runnable {
 
             }
         }
+    }
+
+    public void changeState(ClientState state) {
+        this.state = state;
     }
 
     public int getId() {

@@ -2,7 +2,6 @@ package pl.bartoszf.hungry_bots;
 
 import pl.bartoszf.hungry_bots.Configuration.ConfigurationManager;
 
-import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Timer;
@@ -35,11 +34,12 @@ public class App {
             gameManager = new GameManager();
             secondTicker = new SecondTicker(gameManager);
             timer = new Timer();
-            timer.schedule(secondTicker, 1000);
+            timer.scheduleAtFixedRate(secondTicker, 0, 1000);
+
 
             while (true) {
                 Socket sock = server.accept();
-                for (PlayerSocket so : GameManager.players) {
+                /*for (PlayerSocket so : GameManager.players) {
                     if (so.getSocket().getInetAddress().equals(sock.getInetAddress())) {
                         PrintWriter out = new PrintWriter(sock.getOutputStream(), true);
                         out.write("Someone is already connected on this IP Address");
@@ -47,8 +47,8 @@ public class App {
                         sock.close();
                         return;
                     }
-                }
-                PlayerSocket s = new PlayerSocket(sock, connNum++);
+                }*/
+                PlayerSocket s = new PlayerSocket(sock, connNum++, gameManager);
                 executor.execute(new ClientWorker(s, workingDir));
             }
 
