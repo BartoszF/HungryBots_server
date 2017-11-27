@@ -33,7 +33,7 @@ public class PlayerSocket {
         }
 
         this.gameManager = gameManager;
-        gameManager.addPlayer(this);
+        //gameManager.addPlayer(this);
         //GameManager.players.add(this);
     }
 
@@ -100,7 +100,7 @@ public class PlayerSocket {
 
     public void close() throws IOException {
         socket.close();
-        gameManager.closed(this);
+        //gameManager.closed(this);
         Logger.getLogger("PlayerSocket[" + id + "]").info(userName + "[" + id + "] disconnected");
     }
 }

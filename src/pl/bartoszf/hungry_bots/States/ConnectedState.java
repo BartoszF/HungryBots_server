@@ -20,8 +20,7 @@ public class ConnectedState extends ClientState {
 
             if (command.equals("REGISTER")) {
                 getSocket().setUserName("" + getSocket().getId());
-                getSocket().getGameManager().register(getSocket());
-                getWorker().changeState(new RegisteredState(getSocket(), getWorker()));
+                getSocket().getGameManager().register(getWorker());
             }
 
         } catch (IOException ex) {

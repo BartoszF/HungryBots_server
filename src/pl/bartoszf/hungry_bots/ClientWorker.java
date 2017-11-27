@@ -1,7 +1,6 @@
 package pl.bartoszf.hungry_bots;
 
 import pl.bartoszf.hungry_bots.States.ClientState;
-import pl.bartoszf.hungry_bots.States.ConnectedState;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -25,7 +24,8 @@ public class ClientWorker implements Runnable {
     public ClientWorker(final PlayerSocket socket, String homeDir) {
         this.socket = socket;
         this.workingDir = homeDir;
-        this.state = new ConnectedState(socket, this);
+        //this.state = new ConnectedState(socket, this);
+        socket.gameManager.addPlayer(this);
         //this.manager = new ScreenManager(socket,this);
     }
 
@@ -38,16 +38,6 @@ public class ClientWorker implements Runnable {
         try {
             boolean cancel = false;
             while (!cancel) {
-                //manager.handle();
-                // TODO: Handle messages
-                //
-                //
-                /*String command = socket.getReader().readLine();
-                if(command.equals("REGISTER"))
-                {
-                    socket.setUserName("" + socket.getId());
-                    socket.gameManager.register(socket);
-                }*/
                 state.handle();
                 if (socket.getSocket().isClosed()) cancel = true;
             }
@@ -56,6 +46,7 @@ public class ClientWorker implements Runnable {
         } finally {
             try {
                 socket.close();
+                socket.gameManager.closed(this);
 
             } catch (Exception e) {
                 logger.log(Level.SEVERE, "Failed to close the socket", e);
@@ -72,5 +63,7 @@ public class ClientWorker implements Runnable {
         return id;
     }
 
-
+    public PlayerSocket getSocket() {
+        return socket;
+    }
 }

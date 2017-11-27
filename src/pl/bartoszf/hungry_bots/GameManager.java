@@ -1,17 +1,21 @@
 package pl.bartoszf.hungry_bots;
 
+import pl.bartoszf.hungry_bots.States.ConnectedState;
+import pl.bartoszf.hungry_bots.States.RegisteredState;
+import pl.bartoszf.hungry_bots.States.WaitForCommandsState;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class GameManager {
 
-    public static List<PlayerSocket> players = new ArrayList<PlayerSocket>();
+    public static List<ClientWorker> players = new ArrayList<>();
 
     public int minPlayers = 2;
     public int maxPlayers = 10;
     public boolean waitingForPlayers = true;
 
-    private List<PlayerSocket> registeredPlayers = new ArrayList<>();
+    private List<ClientWorker> registeredPlayers = new ArrayList<>();
 
     private GameState state;
     private int countdown = -1;
@@ -20,12 +24,12 @@ public class GameManager {
         state = GameState.CONNECTED;
     }
 
-    public void addPlayer(PlayerSocket psock) {
+    public void addPlayer(ClientWorker clientWorker) {
         if (waitingForPlayers) {
-            players.add(psock);
-            psock.setGameState(GameState.CONNECTED);
-            broadcast("New bot joined! " + psock.getId());
-            psock.setGameManager(this);
+            players.add(clientWorker);
+            clientWorker.changeState(new ConnectedState(clientWorker.getSocket(), clientWorker));
+            broadcast("{players: " + players.size() + "}");
+            clientWorker.getSocket().setGameManager(this);
             if (players.size() == maxPlayers) {
                 waitingForPlayers = false;
             }
@@ -34,10 +38,10 @@ public class GameManager {
         }
     }
 
-    public void register(PlayerSocket psock) {
-        registeredPlayers.add(psock);
-        psock.setGameState(GameState.REGISTERED);
-        broadcast(psock.getUsername() + " registered to game!");
+    public void register(ClientWorker clientWorker) {
+        registeredPlayers.add(clientWorker);
+        clientWorker.changeState(new RegisteredState(clientWorker.getSocket(), clientWorker));
+        broadcast(clientWorker.getSocket().getUsername() + " registered to game!");
     }
 
     public void tick() {
@@ -60,18 +64,21 @@ public class GameManager {
             state = GameState.WAIT_FOR_COMMANDS;
             //Send player statuses
             //Send state changed
-            broadcast("WAIT_FOR_COMMANDS");
+            for (ClientWorker so : GameManager.players) {
+                so.changeState(new WaitForCommandsState(so.getSocket(), so));
+            }
+            //broadcast("WAIT_FOR_COMMANDS");
         }
     }
 
     public void broadcast(String message) {
-        for (PlayerSocket so : GameManager.players) {
-            so.getOut().print(message);
-            so.getOut().flush();
+        for (ClientWorker so : GameManager.players) {
+            so.getSocket().getOut().print(message);
+            so.getSocket().getOut().flush();
         }
     }
 
-    public void closed(PlayerSocket psock) {
+    public void closed(ClientWorker psock) {
         registeredPlayers.remove(psock);
         players.remove(this);
     }
